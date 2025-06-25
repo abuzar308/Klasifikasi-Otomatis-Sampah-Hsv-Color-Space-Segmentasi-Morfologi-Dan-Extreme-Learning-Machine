@@ -1,35 +1,40 @@
 clc; clear; close all;
 
-%%% Pelatihan
-% menetapkan lokasi folder data latih
+%%% Proses Pelatihan Data Citra
+% Menentukan folder data latih
 nama_folder = 'data latih';
-% membaca nama file yang berformat jpg
+
+% Baca File Citra dengan Format PNG
 nama_file = dir(fullfile(nama_folder,'*.png'));
-% menghitung jumlah file yang dibaca
+
+% Count Jumlah File
 jumlah_file = numel(nama_file);
-% menginisialisasi variabel ciri
+
+% Menentukan variabel ciri
 ciri = zeros(jumlah_file,5);
 kelas = zeros(jumlah_file,1);
-% melakukan ekstraksi ciri terhadap seluruh file yang dibaca
+
+% Ekstasi Ciri pada semua citra
 for n = 1:jumlah_file
-    % membaca file citra
+    % Baca file citra
     Img = imread(fullfile(nama_folder,nama_file(n).name));
-    % mengkonversi ruang warna citra rgb menjadi hsv
+    % Konversi rgb to hsv
     hsv = rgb2hsv(Img);
-    % mengekstrak komponen v
+    % Ekstrak komponen v
     v = hsv(:,:,3);
-    % melakukan thresholding terhadap komponen value
+    % Proses thresholding terhadap komponen v, sesuaikan dengan versi Matlab Anda
     bw = im2bw(v,0.9);
-    % melakukan median filtering
+    % proses median filtering
     bw = medfilt2(~bw,[5,5]);
-    % melakukan operasi morfologi filling holes
+    
+    % proses operasi morfologi filling holes
     bw = imfill(bw,'holes');
-    % melakukan operasi morfologi area opening
+    % Proses operasi morfologi area opening
     bw = bwareaopen(bw,1000);
-    % melakukan operasi morfologi closing
+    % Proses operasi morfologi closing
     str = strel('square',10);
     bw = imdilate(bw,str);
-    % melakukan ekstraksi ciri terhadap citra biner hasil thresholding
+    % Proses ekstraksi ciri terhadap citra biner hasil thresholding
     s  = regionprops(bw, 'all');
     area = cat(1, s.Area);
     perimeter = cat(1, s.Perimeter);
@@ -44,14 +49,14 @@ for n = 1:jumlah_file
     ciri(n,5) = max(minor);
 end
 
-% menetapkan kelas target latih
+% tetapkan kelas target latih
 kelas(1:10) = 1;
 kelas(11:20) = 2;
 kelas(21:30) = 3;
 
-% menyusun data latih
+% susun data latih
 data_training = [kelas,ciri];
-% menyusun parameter2 elm
+% susun parameter2 elm
 NumberofInputNeurons = 5;
 NumberofHiddenNeurons = 60;
 % bobot diinisialisasi secara random
@@ -77,43 +82,43 @@ disp(['akurasi pelatihan = ',num2str(akurasi),'%'])
 save('net','data_training','InputWeight','BiasofHiddenNeurons',...
     'Elm_Type','ActivationFunction')
 clc;
-%%% Pengujian
-% menetapkan lokasi folder data uji
+%%% Proses Pengujian Data
+%  lokasi folder data uji
 nama_folder = 'data uji';
-% membaca nama file yang berformat jpg
+% baca file yang berformat PNG
 nama_file = dir(fullfile(nama_folder,'*.png'));
-% menghitung jumlah file yang dibaca
+% hitung jumlah file
 jumlah_file = numel(nama_file);
-% menginisialisasi variabel ciri
+% tentukan  variabel ciri
 ciri = zeros(jumlah_file,5);
 kelas = zeros(jumlah_file,1);
-% melakukan ekstraksi ciri terhadap seluruh file yang dibaca
+% proses ekstraksi ciri seluruh citra
 for n = 1:jumlah_file
-    % membaca file citra
+    % baca file citra
     Img = imread(fullfile(nama_folder,nama_file(n).name));
-    % mengkonversi ruang warna citra rgb menjadi hsv
+    % konversi ruang warna citra rgb to hsv
     hsv = rgb2hsv(Img);
-    % mengekstrak komponen v
+    % ekstrak komponen v
     v = hsv(:,:,3);
-    % melakukan thresholding terhadap komponen value
+    % proses thresholding terhadap komponen v, sesuaikan dengan versi Matlab anda
     bw = im2bw(v,0.9);
-    % melakukan median filtering
+    % proses median filtering
     bw = medfilt2(~bw,[5,5]);
-    % melakukan operasi morfologi filling holes
+    % proses operasi morfologi filling holes
     bw = imfill(bw,'holes');
-    % melakukan operasi morfologi area opening
+    % proses operasi morfologi area opening
     bw = bwareaopen(bw,1000);
-    % melakukan operasi morfologi closing
+    % proses operasi morfologi closing
     str = strel('square',10);
     bw = imdilate(bw,str);
-    % melakukan ekstraksi ciri terhadap citra biner hasil thresholding
+    % proses ekstraksi ciri terhadap citra biner hasil thresholding
     s  = regionprops(bw, 'all');
     area = cat(1, s.Area);
     perimeter = cat(1, s.Perimeter);
     eccentricity = cat(1, s.Eccentricity);
     mayor = cat(1, s.MajorAxisLength);
     minor = cat(1, s.MinorAxisLength);
-    % menyusun variabel ciri
+    % susun variabel ciri
     ciri(n,1) = max(area);
     ciri(n,2) = max(perimeter);
     ciri(n,3) = max(eccentricity);
@@ -121,12 +126,12 @@ for n = 1:jumlah_file
     ciri(n,5) = max(minor);
 end
 
-% menetapkan kelas target uji
+% tetapkan kelas target uji
 kelas(1:4) = 1;
 kelas(5:6) = 2;
 kelas(7:12) = 3;
 
-% menyusun data uji
+% susun data uji
 data_testing = [kelas,ciri];
 
 % pengujian elm
@@ -135,7 +140,7 @@ data_testing = [kelas,ciri];
     InputWeight, BiasofHiddenNeurons, Elm_Type,...
     ActivationFunction);
 
-% menghitung akurasi pelatihan
+% hitung akurasi pelatihan
 [~,n] = find(predicted_class==kelas);
 akurasi = numel(n)/jumlah_file*100;
 disp(['akurasi pengujian = ',num2str(akurasi),'%'])
